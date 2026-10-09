@@ -700,30 +700,6 @@ export function useDeviceController() {
     setLogs([]);
   }, []);
 
-  const toggleUsbInserted = useCallback(() => {
-    setHardware((prev) => {
-      const next = !prev.usbInserted;
-      addLog('SYS', 'HARDWARE_EVENT', '00 00', { usbInserted: next }, `[仿真硬件] USB设备 ${next ? '插入' : '拔出'}`);
-      return { ...prev, usbInserted: next };
-    });
-  }, [addLog]);
-
-  const toggleTfCardInserted = useCallback(() => {
-    setHardware((prev) => {
-      const next = !prev.tfCardInserted;
-      addLog('SYS', 'HARDWARE_EVENT', '00 00', { tfCardInserted: next }, `[仿真硬件] TF存储卡 ${next ? '插入' : '弹出'}`);
-      return { ...prev, tfCardInserted: next };
-    });
-  }, [addLog]);
-
-  const toggleBluetoothPaired = useCallback(() => {
-    setHardware((prev) => {
-      const next = !prev.bluetoothPaired;
-      addLog('SYS', 'HARDWARE_EVENT', '00 00', { bluetoothPaired: next }, `[仿真硬件] 蓝牙手机 ${next ? '已连接' : '已断开'}`);
-      return { ...prev, bluetoothPaired: next };
-    });
-  }, [addLog]);
-
   return {
     source,
     storageStatus,
@@ -758,8 +734,5 @@ export function useDeviceController() {
     toggleMute,
     toggleChannel,
     clearLogs,
-    toggleUsbInserted,
-    toggleTfCardInserted,
-    toggleBluetoothPaired,
   };
 }
