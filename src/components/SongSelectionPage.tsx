@@ -3,12 +3,10 @@ import {
   Search,
   Music,
   Play,
-  Pause,
   CheckCircle,
-  Disc,
   ArrowLeft,
   X,
-  Volume2,
+  RotateCw,
 } from 'lucide-react';
 import { SongItem } from '../types/device';
 import { MOCK_SONGS } from '../mock/songs';
@@ -20,6 +18,7 @@ interface SongSelectionPageProps {
   onPlayByName: (songName: string) => void;
   onTogglePlayPause: () => void;
   onBackToHome: () => void;
+  onRefreshLibrary?: () => Promise<number | void> | void;
 }
 
 export function SongSelectionPage({
@@ -29,8 +28,11 @@ export function SongSelectionPage({
   onPlayByName,
   onTogglePlayPause,
   onBackToHome,
+  onRefreshLibrary,
 }: SongSelectionPageProps) {
   const [songNameSearch, setSongNameSearch] = useState<string>('');
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [refreshToast, setRefreshToast] = useState<string>('');
 
   // 严格只支持按曲目名搜索 (搜索只支持曲目名)
   const trimmedQuery = songNameSearch.trim().toLowerCase();
@@ -53,6 +55,22 @@ export function SongSelectionPage({
     }
   };
 
+  const handleRefreshClick = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      if (onRefreshLibrary) {
+        await onRefreshLibrary();
+      }
+      setRefreshToast('曲库已刷新就绪');
+    } finally {
+      setIsRefreshing(false);
+      setTimeout(() => {
+        setRefreshToast('');
+      }, 2500);
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col bg-[#fafbfc] overflow-hidden">
       {/* 1. 顶部操作区与曲目名搜索条 */}
@@ -72,14 +90,32 @@ export function SongSelectionPage({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onBackToHome}
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-3 h-3" />
-            <span>返回主页</span>
-          </button>
+          {/* 刷新曲库按键与返回主页 */}
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={handleRefreshClick}
+              disabled={isRefreshing}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors cursor-pointer active:scale-95 disabled:opacity-50 shadow-2xs"
+              title="刷新存储介质曲库列表"
+            >
+              <RotateCw
+                className={`w-3 h-3 text-gray-600 ${
+                  isRefreshing ? 'animate-spin text-gray-900' : ''
+                }`}
+              />
+              <span>{isRefreshing ? '刷新中...' : '刷新曲库'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onBackToHome}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors cursor-pointer shadow-2xs"
+            >
+              <ArrowLeft className="w-3 h-3" />
+              <span>返回主页</span>
+            </button>
+          </div>
         </div>
 
         {/* 曲目名搜索框 (只支持曲目名搜索，输入即实时过滤) */}
@@ -104,7 +140,15 @@ export function SongSelectionPage({
           )}
         </form>
 
-        <div className="flex items-center justify-end text-[10px] text-gray-400 px-0.5">
+        <div className="flex items-center justify-between text-[10px] text-gray-400 px-0.5">
+          {refreshToast ? (
+            <span className="text-emerald-600 font-medium flex items-center gap-1 animate-fadeIn">
+              <CheckCircle className="w-3 h-3" />
+              <span>{refreshToast}</span>
+            </span>
+          ) : (
+            <span>支持实时检索与点播</span>
+          )}
           <span className="font-mono">
             共 {filteredSongs.length} 首可用曲目
           </span>
@@ -175,58 +219,6 @@ export function SongSelectionPage({
             );
           })
         )}
-      </div>
-
-      {/* 3. 页面底部常驻迷你播放控制条 */}
-      <div className="bg-white border-t border-gray-200/90 p-2.5 px-3.5 flex items-center justify-between shrink-0 shadow-xs">
-        <div
-          onClick={onBackToHome}
-          className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer hover:opacity-85 transition-opacity"
-        >
-          <div
-            className={`w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center shrink-0 shadow-2xs ${
-              isPlaying ? 'animate-spin' : ''
-            }`}
-            style={{ animationDuration: '8s' }}
-          >
-            <Disc className="w-4 h-4 text-gray-300" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-gray-900 truncate">
-              {currentSong ? currentSong.name : '暂无播放歌曲'}
-            </p>
-            <p className="text-[10px] text-gray-500 truncate mt-0.5 flex items-center gap-1">
-              <Volume2 className="w-3 h-3 text-gray-400" />
-              <span>
-                {currentSong
-                  ? `${currentSong.artist} · 点击返回主控台`
-                  : '请在上方列表中点播歌曲'}
-              </span>
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0 ml-3">
-          <button
-            type="button"
-            onClick={onTogglePlayPause}
-            className="w-8 h-8 rounded-full bg-gray-900 hover:bg-black text-white flex items-center justify-center cursor-pointer transition-all active:scale-90 shadow-2xs"
-            title={isPlaying ? '暂停' : '播放'}
-          >
-            {isPlaying ? (
-              <Pause className="w-3.5 h-3.5 fill-current" />
-            ) : (
-              <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={onBackToHome}
-            className="px-2.5 py-1 text-xs font-bold text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer"
-          >
-            主控台
-          </button>
-        </div>
       </div>
     </div>
   );

@@ -52,6 +52,7 @@ export default function App() {
     setSongStatusFetching,
     setSongStatusNoSong,
     queryFolder,
+    refreshSongLibrary,
   } = useDeviceController();
 
   // 页面导航视图状态: 'home' (主控台页面) | 'songs' (指定歌曲点播独立页面，无弹窗)
@@ -140,6 +141,7 @@ export default function App() {
             onPlayByName={playSongByName}
             onTogglePlayPause={togglePlayPause}
             onBackToHome={() => setActiveView('home')}
+            onRefreshLibrary={refreshSongLibrary}
           />
         )}
 

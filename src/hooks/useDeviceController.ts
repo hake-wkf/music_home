@@ -332,6 +332,29 @@ export function useDeviceController() {
     );
   }, [addLog, hardware.latencyMs, storageStatus]);
 
+  // 刷新曲库列表指令
+  const refreshSongLibrary = useCallback(async () => {
+    audioSynth.playClickBeep(880);
+    const txHex = `AA 55 42 00 ED`;
+    addLog('TX', 'REFRESH_SONG_LIBRARY', txHex, {}, '指令下发: 刷新存储介质曲库列表');
+
+    await delay(hardware.latencyMs);
+
+    const count = storageStatus === '0' ? 0 : MOCK_SONGS.length;
+    setTotalFiles(count);
+
+    const rxHex = `AA 55 C2 01 00 ED`;
+    addLog(
+      'RX',
+      'RESP_REFRESH_LIBRARY',
+      rxHex,
+      { code: 0, totalSongs: count, status: 'SYNCED' },
+      `设备应答: 曲库已成功刷新同步 (当前共 ${count} 首曲目)`,
+      '曲库已刷新'
+    );
+    return count;
+  }, [addLog, hardware.latencyMs, storageStatus]);
+
   // =========================================================================
   // 7. 获取播放歌曲的id以及名称 (查询失败: 显示“播放信息暂不可用”，保留播放控制)
   // =========================================================================
@@ -964,5 +987,6 @@ export function useDeviceController() {
     setSongStatusFetching,
     setSongStatusNoSong,
     queryFolder,
+    refreshSongLibrary,
   };
 }
