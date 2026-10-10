@@ -7,7 +7,7 @@ interface FeatureGridProps {
   selectedFolderName: string;
   onOpenSourceModal: () => void;
   onOpenFolderModal: () => void;
-  onOpenSongModal: () => void;
+  onNavigateToSongPage: () => void;
 }
 
 export function FeatureGrid({
@@ -16,7 +16,7 @@ export function FeatureGrid({
   selectedFolderName,
   onOpenSourceModal,
   onOpenFolderModal,
-  onOpenSongModal,
+  onNavigateToSongPage,
 }: FeatureGridProps) {
   const sourceName = source === 1 ? 'USB' : source === 2 ? 'TF卡' : '蓝牙';
   const statusLabel =
@@ -24,7 +24,7 @@ export function FeatureGrid({
 
   return (
     <div className="grid grid-cols-3 gap-2.5">
-      {/* 1. 音频输入源入口 */}
+      {/* 1. 音频输入源入口 (弹窗) */}
       <button
         type="button"
         onClick={onOpenSourceModal}
@@ -46,7 +46,7 @@ export function FeatureGrid({
         </div>
       </button>
 
-      {/* 2. 文件夹播放入口 */}
+      {/* 2. 文件夹播放入口 (弹窗) */}
       <button
         type="button"
         onClick={onOpenFolderModal}
@@ -68,10 +68,10 @@ export function FeatureGrid({
         </div>
       </button>
 
-      {/* 3. 指定歌曲点播入口 */}
+      {/* 3. 指定歌曲点播入口 (独立页面，无弹窗) */}
       <button
         type="button"
-        onClick={onOpenSongModal}
+        onClick={onNavigateToSongPage}
         className="bg-white border border-gray-200/90 rounded-2xl p-3 shadow-xs hover:border-gray-400 hover:shadow-sm transition-all text-left flex flex-col justify-between cursor-pointer active:scale-97 group"
       >
         <div className="flex items-center justify-between w-full">
@@ -85,7 +85,7 @@ export function FeatureGrid({
             指定歌曲点播
           </span>
           <span className="text-[10px] text-gray-500 block truncate mt-0.5">
-            曲库列表 · 歌名搜索
+            进入曲库页
           </span>
         </div>
       </button>

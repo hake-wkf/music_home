@@ -42,6 +42,26 @@ export interface ChannelInfo {
   gain: number; // 增益比例
 }
 
+// 歌曲播放状态 (严格对应用户需求: 1.有歌曲信息 2.播放信息获取中 3.暂无播放歌曲)
+export type SongPlaybackState =
+  | 'HAS_SONG' // 有歌曲信息
+  | 'FETCHING_INFO' // 播放信息获取中
+  | 'NO_SONG'; // 暂无播放歌曲
+
+// 播放器状态枚举（支持 3 大核心歌曲播放状态及硬件事件）
+export type PlayerPlaybackStatus =
+  | 'HAS_SONG' // 有歌曲信息: 显示曲目详情、作者、专辑及播放标记
+  | 'FETCHING_INFO' // 播放信息获取中: “播放信息获取中”
+  | 'NO_SONG' // 暂无播放歌曲: “暂无播放歌曲” “请选择歌曲开始播放”
+  | 'INITIAL' // 刚进入页面 (对应 NO_SONG)
+  | 'PLAYING' // 播放中 (对应 HAS_SONG)
+  | 'PAUSED' // 已暂停 (对应 HAS_SONG)
+  | 'NO_CARD' // 未检测到存储卡
+  | 'READY_WAITING' // 就绪未播放
+  | 'FOLDER_PLAYING' // 文件夹播放中
+  | 'BLUETOOTH' // 蓝牙播放
+  | 'QUERY_FAILED'; // 查询失败 (保留播放控制)
+
 // 歌曲信息
 export interface SongItem {
   id: string; // 如 "001", "042"
