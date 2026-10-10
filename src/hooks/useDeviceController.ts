@@ -51,12 +51,12 @@ export function useDeviceController() {
   // 12. 选中的通道 (1-4 可多选)
   const [selectedChannels, setSelectedChannels] = useState<AudioChannel[]>([1, 2]);
 
-  // 通道状态配置
+  // 通道状态配置 (1-4 通道，规范命名为通道一、通道二、通道三、通道四)
   const [channels, setChannels] = useState<ChannelInfo[]>([
-    { id: 1, name: '客厅主分区', zone: 'Zone 1', power: true, gain: 1.0 },
-    { id: 2, name: '主卧温馨区', zone: 'Zone 2', power: true, gain: 0.8 },
-    { id: 3, name: '静心书房', zone: 'Zone 3', power: false, gain: 0.7 },
-    { id: 4, name: '休闲阳台', zone: 'Zone 4', power: false, gain: 0.9 },
+    { id: 1, name: '通道一', zone: 'CH 1', power: true, gain: 1.0 },
+    { id: 2, name: '通道二', zone: 'CH 2', power: true, gain: 0.8 },
+    { id: 3, name: '通道三', zone: 'CH 3', power: false, gain: 0.7 },
+    { id: 4, name: '通道四', zone: 'CH 4', power: false, gain: 0.9 },
   ]);
 
   // 硬件仿真模拟
@@ -579,6 +579,34 @@ export function useDeviceController() {
     [addLog, hardware.latencyMs]
   );
 
+  // 查询文件夹指令
+  const queryFolder = useCallback(
+    async (folderPath: string) => {
+      audioSynth.playClickBeep(750);
+      const target = MOCK_FOLDERS.find((f) => f.path === folderPath) || MOCK_FOLDERS[0];
+      const txHex = `AA 55 21 00 ED`;
+      addLog(
+        'TX',
+        'QUERY_FOLDER',
+        txHex,
+        { folder: folderPath, name: target.name },
+        `指令下发: 查询目标文件夹 [${target.name}]`
+      );
+      await delay(hardware.latencyMs);
+      const rxHex = `AA 55 A1 01 00 ED`;
+      addLog(
+        'RX',
+        'RESP_QUERY_FOLDER',
+        rxHex,
+        { folder: target.name, path: target.path },
+        `设备应答: 目标文件夹 [${target.name}] 已就绪`,
+        '目录就绪'
+      );
+      return target;
+    },
+    [addLog, hardware.latencyMs]
+  );
+
   // =========================================================================
   // 3 大核心歌曲播放状态切换 (1.有歌曲信息 2.播放信息获取中 3.暂无播放歌曲)
   // =========================================================================
@@ -935,5 +963,6 @@ export function useDeviceController() {
     setSongStatusHasInfo,
     setSongStatusFetching,
     setSongStatusNoSong,
+    queryFolder,
   };
 }

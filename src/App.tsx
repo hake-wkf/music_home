@@ -22,7 +22,6 @@ export default function App() {
     isMuted,
     isPlaying,
     currentSong,
-    currentTime,
     playMode,
     selectedFolder,
     selectedChannels,
@@ -52,6 +51,7 @@ export default function App() {
     setSongStatusHasInfo,
     setSongStatusFetching,
     setSongStatusNoSong,
+    queryFolder,
   } = useDeviceController();
 
   // 页面导航视图状态: 'home' (主控台页面) | 'songs' (指定歌曲点播独立页面，无弹窗)
@@ -67,8 +67,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#eceff3] flex items-center justify-center p-0 sm:py-6 text-gray-900 font-sans selection:bg-gray-900 selection:text-white">
-      {/* 统一移动 App 容器 (严格符合 App/小程序 高度约束，带原生底框，纯白极简家庭风格) */}
-      <div className="w-full max-w-[420px] h-[100dvh] sm:h-[860px] bg-white shadow-2xl rounded-none sm:rounded-[44px] border-0 sm:border-[6px] sm:border-gray-900/90 flex flex-col overflow-hidden relative">
+      {/* 统一移动 App 容器 (严格符合 App/小程序 高度约束，带原生底框) */}
+      <div className="w-full max-w-[420px] h-[100dvh] sm:h-[840px] bg-white shadow-2xl rounded-none sm:rounded-[44px] border-0 sm:border-[6px] sm:border-gray-900/90 flex flex-col overflow-hidden relative">
         {/* 1. App 统一头部 (在曲库页显示返回按钮与页面标题) */}
         <WeChatMiniHeader
           deviceName="客厅背景音乐主机"
@@ -81,9 +81,9 @@ export default function App() {
 
         {/* 2. 页面主体渲染区 */}
         {activeView === 'home' ? (
-          /* 主控台视图 (高度受限滚动) */
+          /* 主控台视图 (4 大核心控制卡片平滑滚动) */
           <main className="flex-1 overflow-y-auto custom-scrollbar p-3.5 space-y-3.5 bg-[#fafbfc]">
-            {/* ① 音乐播放主卡片 (支持3大歌曲播放状态: 有歌曲信息 / 播放信息获取中 / 暂无播放歌曲，已去除进度条) */}
+            {/* ① 音乐播放主卡片 */}
             <PlayerCard
               playerStatus={playerStatus}
               currentSong={currentSong}
@@ -124,7 +124,7 @@ export default function App() {
               onToggleMute={toggleMute}
             />
 
-            {/* ④ 房间播放分区 (4通道独立控制) */}
+            {/* ④ 播放通道分区功能区 (加回首页，通道一 ~ 通道四独立控制) */}
             <ChannelQuickBar
               channels={channels}
               selectedChannels={selectedChannels}
@@ -143,7 +143,7 @@ export default function App() {
           />
         )}
 
-        {/* 3. 原生 App 底框 (无底部导航栏，保留原生安全触控条底框) */}
+        {/* 3. 原生 App 底框 (保留原生安全触控条底框) */}
         <div className="bg-white/95 backdrop-blur-md border-t border-gray-100 py-2.5 shrink-0 select-none">
           <div className="w-28 h-1 bg-gray-300 rounded-full mx-auto"></div>
         </div>
@@ -162,7 +162,7 @@ export default function App() {
         onGetTotalFiles={getTotalFiles}
       />
 
-      {/* 弹窗 2: 指定文件夹播放弹窗 (下拉选择文件夹; 选择播放通道1-4可多选) */}
+      {/* 弹窗 2: 指定文件夹播放弹窗 (下拉选择文件夹; 旁边带查询按钮; 选择播放通道1-4) */}
       <FolderChannelModal
         isOpen={isFolderModalOpen}
         onClose={() => setIsFolderModalOpen(false)}
@@ -171,6 +171,7 @@ export default function App() {
         channels={channels}
         onPlayFolderWithChannels={playFolderWithChannels}
         onToggleChannel={toggleChannel}
+        onQueryFolder={queryFolder}
       />
 
       {/* 弹窗 3: 指令通信日志弹窗 (右上角菜单唤起) */}

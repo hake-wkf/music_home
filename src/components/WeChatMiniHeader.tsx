@@ -7,6 +7,7 @@ interface WeChatMiniHeaderProps {
   showBack?: boolean;
   onBack?: () => void;
   title?: string;
+  onToggleOnline?: () => void;
 }
 
 export function WeChatMiniHeader({
@@ -16,6 +17,7 @@ export function WeChatMiniHeader({
   showBack = false,
   onBack,
   title,
+  onToggleOnline,
 }: WeChatMiniHeaderProps) {
   const displayTitle = title || deviceName;
 
@@ -52,9 +54,23 @@ export function WeChatMiniHeader({
               <h1 className="text-sm font-bold text-gray-900 tracking-tight truncate">
                 {displayTitle}
               </h1>
-              {!showBack && (
-                <span className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-              )}
+              <button
+                type="button"
+                onClick={onToggleOnline}
+                className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold border transition-colors cursor-pointer ${
+                  isOnline
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                    : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 animate-pulse'
+                }`}
+                title={isOnline ? '当前设备在线（点击可模拟离线）' : '当前设备已离线（点击可恢复在线）'}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    isOnline ? 'bg-emerald-500' : 'bg-rose-500'
+                  }`}
+                />
+                <span>{isOnline ? '在线' : '离线'}</span>
+              </button>
             </div>
           </div>
         </div>

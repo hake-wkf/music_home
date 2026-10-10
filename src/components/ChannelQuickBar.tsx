@@ -1,4 +1,4 @@
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, Grid } from 'lucide-react';
 import { ChannelInfo, AudioChannel } from '../types/device';
 
 interface ChannelQuickBarProps {
@@ -13,11 +13,14 @@ export function ChannelQuickBar({
   onToggleChannel,
 }: ChannelQuickBarProps) {
   return (
-    <section className="bg-white border border-gray-200/90 rounded-3xl p-4.5 shadow-xs space-y-3.5">
+    <section className="bg-white border border-gray-200/90 rounded-3xl p-4 shadow-xs space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide">
-          房间播放分区 (4通道独立控制)
-        </h3>
+        <div className="flex items-center gap-1.5">
+          <Grid className="w-3.5 h-3.5 text-gray-700" />
+          <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide">
+            播放通道分区 (4通道独立控制)
+          </h3>
+        </div>
         <span className="text-[11px] font-mono text-gray-500">
           已开启 {selectedChannels.length}/4
         </span>
@@ -52,8 +55,8 @@ export function ChannelQuickBar({
                     {ch.name}
                   </span>
                 </div>
-                <span className="text-[10px] text-gray-400 block mt-0.5">
-                  {ch.zone} · {isSelected ? '正在播放' : '已关闭'}
+                <span className="text-[10px] text-gray-400 block mt-1 font-mono">
+                  通道 {ch.id} · {isSelected ? '正在输出' : '已关闭'}
                 </span>
               </div>
 

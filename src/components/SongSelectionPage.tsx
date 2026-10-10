@@ -104,8 +104,7 @@ export function SongSelectionPage({
           )}
         </form>
 
-        <div className="flex items-center justify-between text-[10px] text-gray-400 px-0.5">
-          <span>仅按曲目名检索 · 无分页连续浏览</span>
+        <div className="flex items-center justify-end text-[10px] text-gray-400 px-0.5">
           <span className="font-mono">
             共 {filteredSongs.length} 首可用曲目
           </span>
