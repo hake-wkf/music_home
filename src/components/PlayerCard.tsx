@@ -120,13 +120,13 @@ export function PlayerCard({
     const song = currentSong || {
       id: '001',
       name: '晴天',
-      artist: '周杰伦',
-      album: '叶惠美',
+      artist: '',
+      album: '',
       folder: '流行金曲',
       duration: 269,
     };
     displayTitle = song.name;
-    displaySubtitle = `${song.artist} · 《${song.album}》`;
+    displaySubtitle = song.artist ? `${song.artist}` : `曲目编号 #${song.id}`;
     badgeText = isPlaying ? '有歌曲信息 · 播放中' : '有歌曲信息 · 已暂停';
     badgeColor = isPlaying
       ? 'bg-emerald-50 text-emerald-700 border-emerald-300'

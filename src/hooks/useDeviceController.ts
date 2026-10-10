@@ -411,15 +411,36 @@ export function useDeviceController() {
   // 8. 指定歌曲id播放歌曲
   // 用户点击歌曲后：立即显示刚刚选择的歌曲名称，同时标记“播放中”
   // =========================================================================
+  // =========================================================================
+  // 8. 指定歌曲id播放歌曲
+  // 用户点击歌曲后：立即显示刚刚选择的歌曲名称，同时标记“播放中”
+  // =========================================================================
   const playSongById = useCallback(
-    async (songId: string) => {
+    async (songId: string, targetChannels?: AudioChannel[]) => {
       audioSynth.playClickBeep(920);
+      const activeChannels =
+        targetChannels && targetChannels.length > 0
+          ? targetChannels
+          : selectedChannels;
+
+      if (targetChannels && targetChannels.length > 0) {
+        setSelectedChannels(targetChannels);
+      }
+
+      // 同步设置播放通道电源状态
+      setChannels((prev) =>
+        prev.map((c) => ({
+          ...c,
+          power: activeChannels.includes(c.id),
+        }))
+      );
+
       const target =
         MOCK_SONGS.find((s) => s.id === songId.trim()) || {
           id: songId,
           name: `曲目_${songId}`,
-          artist: '本地艺术家',
-          album: '存储介质曲目',
+          artist: '',
+          album: '',
           folder: selectedFolder,
           duration: 210,
           bpm: 96,
@@ -434,14 +455,25 @@ export function useDeviceController() {
       setCurrentTime(0);
       audioSynth.playTrack(target.noteFrequency, target.bpm);
 
+      let channelMask = 0;
+      activeChannels.forEach((ch) => {
+        channelMask |= 1 << (ch - 1);
+      });
+      const hexMask = channelMask.toString(16).padStart(2, '0').toUpperCase();
+
       const cleanId = songId.padStart(3, '0');
-      const txHex = `AA 55 41 02 ${cleanId.slice(0, 2)} ${cleanId.slice(2, 4)} ED`;
+      const txHex = `AA 55 41 03 ${cleanId.slice(0, 2)} ${cleanId.slice(2, 4)} ${hexMask} ED`;
       addLog(
         'TX',
         'PLAY_BY_ID',
         txHex,
-        { songId: cleanId, songName: target.name },
-        `指令下发: 指定歌曲ID [${cleanId}] 播放歌曲 《${target.name}》`
+        {
+          songId: cleanId,
+          songName: target.name,
+          channels: activeChannels,
+          channelMask: `0x${hexMask}`,
+        },
+        `指令下发: 指定歌曲ID [${cleanId}] 播放歌曲 《${target.name}》 (通道: ${activeChannels.map((c) => `通道${c}`).join(', ')})`
       );
 
       await delay(hardware.latencyMs);
@@ -451,12 +483,17 @@ export function useDeviceController() {
         'RX',
         'RESP_PLAY_BY_ID',
         rxHex,
-        { code: 0, id: target.id, name: target.name },
-        `设备应答: 已开始播放曲目 ID=[${target.id}] 《${target.name}》`,
+        {
+          code: 0,
+          id: target.id,
+          name: target.name,
+          activeChannels,
+        },
+        `设备应答: 已开始在通道 [${activeChannels.map((c) => `通道${c}`).join(', ')}] 播放曲目 ID=[${target.id}] 《${target.name}》`,
         '播放中'
       );
     },
-    [addLog, hardware.latencyMs, selectedFolder]
+    [addLog, hardware.latencyMs, selectedChannels, selectedFolder]
   );
 
   // =========================================================================
@@ -464,17 +501,31 @@ export function useDeviceController() {
   // 用户点击歌曲后：立即显示刚刚选择的歌曲名称，同时标记“播放中”
   // =========================================================================
   const playSongByName = useCallback(
-    async (songName: string) => {
+    async (songName: string, targetChannels?: AudioChannel[]) => {
       audioSynth.playClickBeep(920);
+      const activeChannels =
+        targetChannels && targetChannels.length > 0
+          ? targetChannels
+          : selectedChannels;
+
+      if (targetChannels && targetChannels.length > 0) {
+        setSelectedChannels(targetChannels);
+      }
+
+      setChannels((prev) =>
+        prev.map((c) => ({
+          ...c,
+          power: activeChannels.includes(c.id),
+        }))
+      );
+
       const query = songName.trim().toLowerCase();
       const target =
-        MOCK_SONGS.find(
-          (s) => s.name.toLowerCase().includes(query) || s.artist.toLowerCase().includes(query)
-        ) || {
+        MOCK_SONGS.find((s) => s.name.toLowerCase().includes(query)) || {
           id: '099',
           name: songName.trim(),
-          artist: '点播艺术家',
-          album: '点播专辑',
+          artist: '',
+          album: '',
           folder: selectedFolder,
           duration: 198,
           bpm: 100,
@@ -489,13 +540,24 @@ export function useDeviceController() {
       setCurrentTime(0);
       audioSynth.playTrack(target.noteFrequency, target.bpm);
 
-      const txHex = `AA 55 42 10 [NAME_STR] ED`;
+      let channelMask = 0;
+      activeChannels.forEach((ch) => {
+        channelMask |= 1 << (ch - 1);
+      });
+      const hexMask = channelMask.toString(16).padStart(2, '0').toUpperCase();
+
+      const txHex = `AA 55 42 11 ${hexMask} [NAME_STR] ED`;
       addLog(
         'TX',
         'PLAY_BY_NAME',
         txHex,
-        { searchKeyword: songName, matchedName: target.name },
-        `指令下发: 指定歌曲名 [${songName}] 播放歌曲`
+        {
+          searchKeyword: songName,
+          matchedName: target.name,
+          channels: activeChannels,
+          channelMask: `0x${hexMask}`,
+        },
+        `指令下发: 指定歌曲名 [${songName}] 播放歌曲 《${target.name}》 (通道: ${activeChannels.map((c) => `通道${c}`).join(', ')})`
       );
 
       await delay(hardware.latencyMs);
@@ -505,12 +567,17 @@ export function useDeviceController() {
         'RX',
         'RESP_PLAY_BY_NAME',
         rxHex,
-        { code: 0, matchedId: target.id, name: target.name },
-        `设备应答: 找到曲目 ID=[${target.id}] 《${target.name}》并起播`,
+        {
+          code: 0,
+          matchedId: target.id,
+          name: target.name,
+          activeChannels,
+        },
+        `设备应答: 找到曲目 ID=[${target.id}] 《${target.name}》并在通道 [${activeChannels.map((c) => `通道${c}`).join(', ')}] 起播`,
         '播放中'
       );
     },
-    [addLog, hardware.latencyMs, selectedFolder]
+    [addLog, hardware.latencyMs, selectedChannels, selectedFolder]
   );
 
   // =========================================================================

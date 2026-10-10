@@ -133,10 +133,13 @@ export default function App() {
             />
           </main>
         ) : (
-          /* 指定歌曲点播独立页面 (不要弹窗、不要分页、连续平滑滚动) */
+          /* 指定歌曲点播独立页面 (选择通道、播放通道设置、连续平滑滚动) */
           <SongSelectionPage
             currentSong={currentSong}
             isPlaying={isPlaying}
+            selectedChannels={selectedChannels}
+            channels={channels}
+            onToggleChannel={toggleChannel}
             onPlayById={playSongById}
             onPlayByName={playSongByName}
             onTogglePlayPause={togglePlayPause}
